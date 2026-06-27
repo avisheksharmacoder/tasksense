@@ -1,0 +1,62 @@
+# ==============================================================================
+# Python Virtual Environment (created in root directory)
+# ==============================================================================
+Include/
+Lib/
+Scripts/
+pyvenv.cfg
+*.pyc
+__pycache__/
+.venv/
+venv/
+
+# ==============================================================================
+# Local Databases & Vector Storage (TinyDB, ChromaDB, SQLite)
+# ==============================================================================
+*.db
+*.sqlite
+*.sqlite3
+*.db.json
+chroma/
+chroma_db/
+chroma-data/
+
+# ==============================================================================
+# Vue Frontend & Node Dependencies
+# ==============================================================================
+frontvue/node_modules/
+frontvue/dist/
+frontvue/dist-ssr/
+frontvue/.pnpm-store/
+node_modules/
+dist/
+
+# ==============================================================================
+# Environment Files & Secrets
+# ==============================================================================
+.env
+.env.*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ==============================================================================
+# Logs, Testing & Cache
+# ==============================================================================
+*.log
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+coverage.xml
+htmlcov/
+.cache/
+
+# ==============================================================================
+# IDE & OS Specific Files
+# ==============================================================================
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
