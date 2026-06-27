@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import Task from './Task.vue';
@@ -54,6 +54,34 @@ const searchQuery = ref('');
 const currentFilter = ref('all'); // 'all', 'open', 'hold', 'resolved'
 const selectedTaskId = ref(1);
 
+const panelRef = ref(null);
+const isWidePanel = ref(false);
+let resizeObserver = null;
+
+const checkPanelWidth = (panelWidth) => {
+  // Calculate if Left Panel is 50% or more of the total window width
+  const totalWidth = window.innerWidth;
+  isWidePanel.value = panelWidth >= (totalWidth * 0.5);
+};
+
+onMounted(() => {
+  if (panelRef.value) {
+    resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        checkPanelWidth(entry.contentRect.width);
+      }
+    });
+    resizeObserver.observe(panelRef.value);
+  }
+});
+
+onBeforeUnmount(() => {
+  if (resizeObserver && panelRef.value) {
+    resizeObserver.unobserve(panelRef.value);
+    resizeObserver.disconnect();
+  }
+});
+
 const filteredTasks = computed(() => {
   return tasks.value.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
@@ -70,7 +98,7 @@ const handleSelectTask = (task) => {
 </script>
 
 <template>
-  <aside class="left-panel">
+  <aside ref="panelRef" :class="['left-panel', { 'wide-panel': isWidePanel }]">
     <!-- Panel Header: Title and New Task Button -->
     <div class="panel-header">
       <div class="title-container">
@@ -110,7 +138,7 @@ const handleSelectTask = (task) => {
         <i class="pi pi-inbox empty-icon"></i>
         <p class="empty-text">No tasks found matching your criteria.</p>
       </div>
-      <div v-else class="task-list">
+      <div v-else :class="['task-list', { 'task-grid-2': isWidePanel }]">
         <div
           v-for="task in filteredTasks"
           :key="task.id"
@@ -126,14 +154,17 @@ const handleSelectTask = (task) => {
 
 <style scoped>
 .left-panel {
+  box-sizing: border-box;
+  container-type: inline-size;
+  container-name: leftpanel;
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
+  min-width: 0; /* Critical for flex child overflow prevention */
   background: var(--p-surface-card, var(--p-surface-0, #ffffff));
   border-right: 1px solid var(--p-content-border-color, var(--p-surface-200, #e2e8f0));
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 
 html.p-dark .left-panel {
@@ -143,11 +174,14 @@ html.p-dark .left-panel {
 
 /* Header */
 .panel-header {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--p-content-border-color, var(--p-surface-200, #e2e8f0));
+  width: 100%;
+  min-width: 0;
 }
 
 html.p-dark .panel-header {
@@ -158,6 +192,7 @@ html.p-dark .panel-header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
 }
 
 .panel-title {
@@ -166,6 +201,9 @@ html.p-dark .panel-header {
   color: var(--p-text-color, #1e293b);
   margin: 0;
   letter-spacing: -0.4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 html.p-dark .panel-title {
@@ -180,6 +218,7 @@ html.p-dark .panel-title {
   padding: 0.2rem 0.6rem;
   border-radius: 1rem;
   border: 1px solid var(--p-primary-200, #a7f3d0);
+  flex-shrink: 0;
 }
 
 html.p-dark .task-count {
@@ -191,11 +230,15 @@ html.p-dark .task-count {
 .new-task-btn {
   font-weight: 600;
   border-radius: 0.5rem;
+  flex-shrink: 0;
 }
 
 /* Search Bar */
 .search-container {
-  padding: 1rem 1.5rem 0.5rem 1.5rem;
+  box-sizing: border-box;
+  padding: 1rem 1.25rem 0.5rem 1.25rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .search-wrapper {
@@ -235,10 +278,14 @@ html.p-dark .search-input {
 
 /* Filter Tabs */
 .filter-tabs {
+  box-sizing: border-box;
   display: flex;
-  gap: 0.5rem;
-  padding: 0.5rem 1.5rem 1rem 1.5rem;
+  gap: 0.25rem;
+  padding: 0.5rem 1.25rem 1rem 1.25rem;
   border-bottom: 1px solid var(--p-content-border-color, var(--p-surface-200, #e2e8f0));
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
 }
 
 html.p-dark .filter-tabs {
@@ -247,8 +294,8 @@ html.p-dark .filter-tabs {
 
 .filter-tab {
   flex: 1;
-  padding: 0.4rem 0;
-  font-size: 0.85rem;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.82rem;
   font-weight: 600;
   border: none;
   border-radius: 0.5rem;
@@ -256,6 +303,9 @@ html.p-dark .filter-tabs {
   color: var(--p-text-muted-color, var(--p-surface-500, #64748b));
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
+  text-align: center;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .filter-tab:hover {
@@ -274,12 +324,16 @@ html.p-dark .filter-tab:hover {
   font-weight: 700;
 }
 
-/* Task List Container */
+/* Task List Container & Dynamic Grid */
 .task-list-container {
+  box-sizing: border-box;
   flex: 1;
   overflow-y: auto;
-  padding: 1.25rem 1.5rem;
+  overflow-x: hidden; /* Prevent any accidental horizontal scrollbar */
+  padding: 1.25rem;
   background: var(--p-surface-50, #f8fafc);
+  width: 100%;
+  min-width: 0;
 }
 
 html.p-dark .task-list-container {
@@ -287,15 +341,32 @@ html.p-dark .task-list-container {
 }
 
 .task-list {
-  display: flex;
-  flex-direction: column;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); /* minmax(0, 1fr) ensures grid items shrink perfectly */
   gap: 1.25rem;
+  width: 100%;
+  min-width: 0;
+  align-items: start;
+}
+
+/* Triggered via Vue ResizeObserver when panel is >= 50% of window width */
+.task-list.task-grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .task-wrapper {
+  box-sizing: border-box;
   transition: transform 0.2s ease;
   border-radius: 1rem;
   padding: 2px; /* For selected state border highlight */
+  height: 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+.task-wrapper :deep(.task-card) {
+  height: 100%; /* Ensure cards stretch equally in 2-column grid */
 }
 
 .task-wrapper.selected-task {

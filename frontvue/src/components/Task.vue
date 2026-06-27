@@ -54,7 +54,7 @@ const statusConfig = computed(() => {
       <h3 class="task-title">{{ title }}</h3>
       <div :class="['status-badge', statusConfig.badgeClass]">
         <i :class="statusConfig.icon"></i>
-        <span>{{ statusConfig.label }}</span>
+        <span class="badge-text">{{ statusConfig.label }}</span>
       </div>
     </div>
 
@@ -71,7 +71,7 @@ const statusConfig = computed(() => {
       <div class="comment-col agent-col">
         <div class="col-label">
           <i class="pi pi-desktop agent-icon"></i>
-          <span>Agent Comments</span>
+          <span class="label-text">Agent Comments</span>
         </div>
         <span class="comment-count agent-count">{{ agentComments }}</span>
       </div>
@@ -80,7 +80,7 @@ const statusConfig = computed(() => {
       <div class="comment-col user-col">
         <div class="col-label">
           <i class="pi pi-user user-icon"></i>
-          <span>User Comments</span>
+          <span class="label-text">User Comments</span>
         </div>
         <span class="comment-count user-count">{{ userComments }}</span>
       </div>
@@ -90,13 +90,16 @@ const statusConfig = computed(() => {
 
 <style scoped>
 .task-card {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0; /* Prevents flex/grid item from refusing to shrink */
   background: var(--p-surface-card, var(--p-surface-0, #ffffff));
   border: 1px solid var(--p-content-border-color, var(--p-surface-200, #e2e8f0));
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.85rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   cursor: pointer;
@@ -126,16 +129,21 @@ html.p-dark .task-card:hover {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .task-title {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--p-text-color, #1e293b);
   margin: 0;
   line-height: 1.3;
   letter-spacing: -0.3px;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
 }
 
 html.p-dark .task-title {
@@ -146,10 +154,10 @@ html.p-dark .task-title {
 .status-badge {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.85rem;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
   border-radius: 2rem;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -195,18 +203,20 @@ html.p-dark .status-resolved {
 
 /* Body Section */
 .task-body {
-  margin-bottom: 0.25rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .task-description {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: var(--p-text-muted-color, var(--p-surface-500, #64748b));
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-break: break-word;
 }
 
 html.p-dark .task-description {
@@ -219,6 +229,7 @@ html.p-dark .task-description {
   height: 1px;
   background: var(--p-content-border-color, var(--p-surface-200, #e2e8f0));
   margin: 0;
+  width: 100%;
 }
 
 html.p-dark .task-divider {
@@ -227,21 +238,28 @@ html.p-dark .task-divider {
 
 /* Footer Section (2 Columns) */
 .task-footer {
+  box-sizing: border-box;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* minmax(0, 1fr) fixes the CSS grid overflow bug */
+  gap: 0.5rem;
   align-items: center;
+  width: 100%;
+  min-width: 0;
 }
 
 .comment-col {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.35rem;
   background: var(--p-surface-100, #f8fafc);
-  padding: 0.6rem 1rem;
-  border-radius: 0.75rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.6rem;
   border: 1px solid var(--p-surface-200, #e2e8f0);
   transition: background-color 0.2s ease, border-color 0.2s ease;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .comment-col:hover {
@@ -260,33 +278,45 @@ html.p-dark .comment-col:hover {
 .col-label {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
+  gap: 0.4rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--p-text-muted-color, var(--p-surface-600, #475569));
+  min-width: 0;
+  overflow: hidden;
 }
 
 html.p-dark .col-label {
   color: var(--p-surface-400, #94a3b8);
 }
 
+.label-text {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  min-width: 0;
+}
+
 .agent-icon {
   color: var(--p-primary-color, #10b981);
-  font-size: 1.05rem;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
 .user-icon {
-  color: #8b5cf6; /* Vibrant purple for user distinction */
-  font-size: 1.05rem;
+  color: #8b5cf6;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
 .comment-count {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 800;
-  padding: 0.15rem 0.6rem;
-  border-radius: 0.5rem;
-  min-width: 1.8rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.4rem;
+  min-width: 1.5rem;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .agent-count {
@@ -307,11 +337,13 @@ html.p-dark .user-count {
   color: #c4b5fd;
 }
 
-/* Responsive adjustments */
-@media (max-width: 575px) {
-  .task-footer {
-    grid-template-columns: 1fr;
-    gap: 0.6rem;
+/* Responsive adjustments for extremely tight widths */
+@container leftpanel (max-width: 320px) {
+  .badge-text {
+    display: none; /* Show only icon on extremely narrow panel */
+  }
+  .label-text {
+    display: none; /* Show only icon and number on extremely narrow panel */
   }
 }
 </style>

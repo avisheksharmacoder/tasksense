@@ -1,5 +1,7 @@
 <script setup>
 import { ref } from 'vue';
+import Splitter from 'primevue/splitter';
+import SplitterPanel from 'primevue/splitterpanel';
 import LeftPanel from './LeftPanel.vue';
 import ChatPanel from './ChatPanel.vue';
 
@@ -20,17 +22,17 @@ const onSelectTask = (task) => {
 
 <template>
   <main class="main-ui-container">
-    <div class="panels-wrapper">
+    <Splitter class="panels-splitter" layout="horizontal">
       <!-- Left Panel (Task List & Filters) -->
-      <div class="sidebar-column">
+      <SplitterPanel :size="32" :minSize="22" class="sidebar-panel">
         <LeftPanel @select-task="onSelectTask" />
-      </div>
+      </SplitterPanel>
 
       <!-- Right Panel (Chat & Task Details) -->
-      <div class="chat-column">
+      <SplitterPanel :size="68" :minSize="40" class="chat-panel-wrapper">
         <ChatPanel :activeTask="currentActiveTask" />
-      </div>
-    </div>
+      </SplitterPanel>
+    </Splitter>
   </main>
 </template>
 
@@ -47,48 +49,47 @@ html.p-dark .main-ui-container {
   background: var(--p-surface-950, #020617);
 }
 
-.panels-wrapper {
-  display: flex;
+/* Splitter Container */
+.panels-splitter {
   width: 100%;
   height: 100%;
+  border: none;
+  background: transparent;
 }
 
-.sidebar-column {
-  width: 420px;
-  min-width: 360px;
-  height: 100%;
-  flex-shrink: 0;
-  z-index: 10;
-  box-shadow: 1px 0 12px rgba(0, 0, 0, 0.03);
-}
-
-.chat-column {
-  flex: 1;
-  height: 100%;
-  min-width: 0; /* Prevents flex item from overflowing */
+.sidebar-panel {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  z-index: 10;
 }
 
-/* Responsive Layout Adjustments */
-@media (max-width: 991px) {
-  .sidebar-column {
-    width: 350px;
-  }
+.chat-panel-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+</style>
+
+<style>
+/* Custom PrimeVue Splitter Gutter Styling for Rich Aesthetics */
+.panels-splitter .p-splitter-gutter {
+  background: var(--p-content-border-color, var(--p-surface-200, #e2e8f0)) !important;
+  width: 6px !important;
+  transition: background-color 0.2s ease;
 }
 
-@media (max-width: 768px) {
-  .panels-wrapper {
-    flex-direction: column;
-  }
-  .sidebar-column {
-    width: 100%;
-    height: 45%;
-    border-right: none;
-    border-bottom: 1px solid var(--p-content-border-color, var(--p-surface-200, #e2e8f0));
-  }
-  .chat-column {
-    height: 55%;
-  }
+.panels-splitter .p-splitter-gutter:hover {
+  background: var(--p-primary-300, #6ee7b7) !important;
+}
+
+html.p-dark .panels-splitter .p-splitter-gutter {
+  background: var(--p-surface-800, #1e293b) !important;
+}
+
+html.p-dark .panels-splitter .p-splitter-gutter:hover {
+  background: var(--p-primary-600, #059669) !important;
 }
 </style>
