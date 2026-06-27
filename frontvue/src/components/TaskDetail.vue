@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
@@ -39,6 +39,29 @@ const taskData = computed(() => {
   };
 });
 
+// Dynamic AI Agent Availability Simulator (toggles green and red)
+const isAgentAvailable = ref(true);
+const isGenerating = ref(false);
+let availabilityTimer = null;
+
+onMounted(() => {
+  availabilityTimer = setInterval(() => {
+    isAgentAvailable.value = !isAgentAvailable.value;
+  }, 4000); // Toggles availability state every 4 seconds
+});
+
+onBeforeUnmount(() => {
+  if (availabilityTimer) {
+    clearInterval(availabilityTimer);
+  }
+});
+
+const toggleAgentStatus = () => {
+  if (!isGenerating.value) {
+    isAgentAvailable.value = !isAgentAvailable.value;
+  }
+};
+
 // Dummy comments simulating the conversation between AI Agent and User
 const comments = ref([
   {
@@ -70,7 +93,9 @@ const comments = ref([
 const newCommentText = ref('');
 
 const addComment = () => {
-  if (!newCommentText.value.trim()) return;
+  if (!newCommentText.value.trim() || isGenerating.value) return;
+  
+  // 1. Add User Comment
   comments.value.push({
     id: Date.now(),
     sender: 'user',
@@ -80,6 +105,23 @@ const addComment = () => {
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   });
   newCommentText.value = '';
+
+  // 2. Trigger AI Response Generation State (Turns button blue)
+  isGenerating.value = true;
+
+  // Simulate AI typing delay
+  setTimeout(() => {
+    comments.value.push({
+      id: Date.now(),
+      sender: 'agent',
+      author: taskData.value.agentName,
+      avatar: 'pi pi-desktop',
+      text: 'I have logged your update and adjusted the automated execution parameters accordingly. Changes are currently propagating.',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+    // Revert button back to green/red availability state
+    isGenerating.value = false;
+  }, 2500); // 2.5 seconds delay
 };
 
 // Handle dialog visibility update
@@ -171,9 +213,19 @@ const onUpdateVisible = (val) => {
         <!-- Add Comment Input Bar -->
         <div class="add-comment-bar">
           <div class="input-wrapper">
+            <!-- Dynamic AI Availability & Generation Indicator Button -->
+            <Button
+              icon="pi pi-android"
+              :class="['ai-status-btn', isGenerating ? 'ai-generating' : (isAgentAvailable ? 'ai-available' : 'ai-busy')]"
+              @click="toggleAgentStatus"
+              :disabled="isGenerating"
+              :title="isGenerating ? 'AI Agent: Generating response...' : (isAgentAvailable ? 'AI Agent: Available (Click to toggle)' : 'AI Agent: Busy (Click to toggle)')"
+              aria-label="AI Agent Status"
+            />
             <InputText
               v-model="newCommentText"
-              placeholder="Write a reply..."
+              :placeholder="isGenerating ? 'AI Agent is typing a response...' : 'Write a reply...'"
+              :disabled="isGenerating"
               @keyup.enter="addComment"
               class="comment-input"
             />
@@ -181,6 +233,7 @@ const onUpdateVisible = (val) => {
               icon="pi pi-send"
               severity="primary"
               @click="addComment"
+              :disabled="isGenerating"
               class="send-btn"
               aria-label="Send Comment"
             />
@@ -514,7 +567,7 @@ html.p-dark .comment-author {
 
 .comment-time {
   color: var(--p-text-muted-color, var(--p-surface-400, #94a3b8));
-  font-size: 0.8.rem;
+  font-size: 0.8rem;
 }
 
 .comment-bubble {
@@ -564,8 +617,8 @@ html.p-dark .comment-user .comment-bubble {
   gap: 1rem;
   background: var(--p-surface-50, #f8fafc);
   border: 1px solid var(--p-content-border-color, var(--p-surface-200, #e2e8f0));
-  border-radius: 1rem;
-  padding: 0.4rem 0.4rem 0.4rem 1.25rem;
+  border-radius: 1.25rem;
+  padding: 0.4rem 0.4rem 0.4rem 0.6rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -577,6 +630,58 @@ html.p-dark .comment-user .comment-bubble {
 html.p-dark .input-wrapper {
   background: var(--p-surface-900, #0f172a);
   border-color: var(--p-surface-700, #334155);
+}
+
+/* AI Status Button */
+.ai-status-btn {
+  border-radius: 50% !important;
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.ai-available {
+  background: var(--p-primary-500, #10b981) !important;
+  border: 1px solid var(--p-primary-600, #059669) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+}
+
+.ai-busy {
+  background: #ef4444 !important;
+  border: 1px solid #dc2626 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.45);
+}
+
+.ai-generating {
+  background: #3b82f6 !important;
+  border: 1px solid #2563eb !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.6);
+  animation: pulseBlue 1.5s infinite ease-in-out;
+}
+
+@keyframes pulseBlue {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 12px rgba(59, 130, 246, 0.5); }
+  50% { transform: scale(1.08); box-shadow: 0 0 22px rgba(59, 130, 246, 0.85); }
+}
+
+html.p-dark .ai-available {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+}
+
+html.p-dark .ai-busy {
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+}
+
+html.p-dark .ai-generating {
+  box-shadow: 0 0 22px rgba(59, 130, 246, 0.85);
 }
 
 .comment-input {
@@ -599,7 +704,7 @@ html.p-dark .comment-input {
 }
 
 .send-btn {
-  border-radius: 0.75rem;
+  border-radius: 0.85rem;
   padding: 0.75rem 1.25rem;
 }
 </style>
