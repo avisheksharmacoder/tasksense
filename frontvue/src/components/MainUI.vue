@@ -4,6 +4,7 @@ import Splitter from 'primevue/splitter';
 import SplitterPanel from 'primevue/splitterpanel';
 import LeftPanel from './LeftPanel.vue';
 import ChatPanel from './ChatPanel.vue';
+import TaskDetail from './TaskDetail.vue';
 
 // Track the currently selected task to pass to ChatPanel
 const currentActiveTask = ref({
@@ -15,8 +16,11 @@ const currentActiveTask = ref({
   userComments: 5
 });
 
+const showTaskDetail = ref(false);
+
 const onSelectTask = (task) => {
   currentActiveTask.value = task;
+  showTaskDetail.value = true;
 };
 </script>
 
@@ -33,6 +37,9 @@ const onSelectTask = (task) => {
         <ChatPanel :activeTask="currentActiveTask" />
       </SplitterPanel>
     </Splitter>
+
+    <!-- Task Detail Dialog -->
+    <TaskDetail v-model:visible="showTaskDetail" :task="currentActiveTask" />
   </main>
 </template>
 
